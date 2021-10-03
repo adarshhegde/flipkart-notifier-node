@@ -10,8 +10,8 @@ const server = express()
 const MongoClient = require('mongodb').MongoClient;
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
-
+var xpath = require('xpath')
+  , dom = require('xmldom').DOMParser;
 let target_ids = []
 
 let commands = {}
@@ -27,8 +27,6 @@ client.connect(async err => {
     console.log("Loaded from mongodb");
     console.log(local_data)
 });
-
-
 async function refreshLocal() {
     local_data = await client.db("flipkart").collection("users").find({}).toArray() || {};
 }
@@ -552,7 +550,7 @@ async function checkProduct(product, user) {
             let buyNowandPriceVisible = await checkPriceAndBuyNow(root);
 
             if (user.receive_updates && buyNowandPriceVisible) {
-                let title = root.querySelector("._35KyD6").text.trim();
+                let title = root.querySelector(".B_NuCI").text.trim();
                 bot.telegram.sendMessage(user.user_id, title + " IS AVAILABLE, LINK -> " + product);
 
             }
@@ -568,9 +566,9 @@ function checkOutOfStock(root) {
     return new Promise((resolve, reject) => {
         let out_of_stock = true;
         try {
-            out_of_stock = (root.querySelector("._1mzTZn").text).trim() === "This item is currently out of stock";
-
+            out_of_stock = (root.querySelector("._1dVbu9").text).trim() === "This item is currently out of stock";
         } catch (err) {
+            // console.log(err)
             out_of_stock = false;
         }
         resolve(out_of_stock);
@@ -581,7 +579,7 @@ function checkComingSoon(root) {
     return new Promise((resolve, reject) => {
         let coming_soon = true;
         try {
-            coming_soon = (root.querySelector("._9-sL7L").text).trim() === "Coming Soon";
+            coming_soon = (root.querySelector("._16FRp0").text).trim() === "Coming Soon";
 
         } catch (err) {
             coming_soon = false;
@@ -595,9 +593,9 @@ function checkPriceAndBuyNow(root) {
         let result = false;
         try {
 
-            let pricing_visible = (root.querySelector("._1vC4OE._3qQ9m1") && root.querySelector("._1vC4OE._3qQ9m1").text) || false;
-            let buy_visible = (root.querySelector("._2AkmmA._2Npkh4._2kuvG8._7UHT_c") && root.querySelector("._2AkmmA._2Npkh4._2kuvG8._7UHT_c").text) || false;
-
+            let pricing_visible = (root.querySelector("._30jeq3._16Jk6d") && root.querySelector("._30jeq3._16Jk6d").text) || false;
+            let buy_visible = (root.querySelector("._2KpZ6l._2U9uOA.ihZ75k._3AWRsL") && root.querySelector("._2KpZ6l._2U9uOA.ihZ75k._3AWRsL").text) || false;
+            console.log(pricing_visible, buy_visible)
             result = pricing_visible && buy_visible;
 
         } catch (err) {
@@ -607,43 +605,3 @@ function checkPriceAndBuyNow(root) {
     })
 }
 
-
-/*
-
-
-
-  try { // check for out of stock,
-            let out_of_stock = (root.querySelector("._1mzTZn").text).trim() === "This item is currently out of stock";
-            if(!out_of_stock) throw Error("");
-            console.log("         out of stock");
-        }
-        catch (err) {
-
-            try {
-
-                let coming_soon = (root.querySelector("._9-sL7L").text).trim() === "Coming Soon";
-                if(!coming_soon) throw Error("");
-                console.log("         coming soon");
-
-            } catch(err) {
-
-            // check for stock
-
-            let pricing_visible = (root.querySelector("._1vC4OE._3qQ9m1") && root.querySelector("._1vC4OE._3qQ9m1").text) || false;
-            let buy_visible = (root.querySelector("._2AkmmA._2Npkh4._2kuvG8._7UHT_c") && root.querySelector("._2AkmmA._2Npkh4._2kuvG8._7UHT_c").text) || false;
-            if (pricing_visible && buy_visible) {
-                console.log("         Available");
-                if (local_data[user].receive_updates) {
-
-                    bot.telegram.sendMessage(user, "PRODUCT IS AVAILABLE, LINK -> " + product);
-                }
-            }
-            }
-
-        }
-
-
-
-
-
-*/

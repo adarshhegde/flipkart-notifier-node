@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "engines": {
-    "node": "12.13.1"
-  },
   "scripts": {
     "start": "node index.js",
     "build": "npm install"
@@ -20,6 +17,11 @@
     "mongodb": "^3.5.9",
     "node-html-parser": "^1.2.20",
     "nodemon": "^2.0.4",
-    "telegraf": "^3.38.0"
+    "parse5": "^6.0.1",
+    "telegraf": "^3.38.0",
+    "xmldom": "^0.6.0",
+    "xmlserializer": "^0.6.1",
+    "xpath": "^0.0.32",
+    "xpath-html": "^1.0.2"
   }
 }
