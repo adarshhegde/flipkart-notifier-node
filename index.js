@@ -48,25 +48,35 @@ server.get("/", (req, res) => res.send("keep_alive"));
 server.get("/data", (req, res) => res.send(JSON.stringify(local_data)));
 
 
-async function makeHttps(url) {
-    return new Promise((respond, rej) => {
 
-
-
-        https.get(url, res => {
-            res.setEncoding("utf8");
-            let body = "";
-            res.on("data", data => {
-                body += data;
-            });
-            res.on("end", () => {
-                respond(body);
-            });
-        });
-
-
+function get(url, resolve, reject) {
+    https.get(url, (res) => {
+      // if any other status codes are returned, those needed to be added here
+      if(res.statusCode === 301 || res.statusCode === 302) {
+        return get(res.headers.location, resolve, reject)
+      }
+  
+      let body = [];
+  
+      res.on("data", (chunk) => {
+        body.push(chunk);
+      });
+  
+      res.on("end", () => {
+        try {
+          // remove JSON.parse(...) for plain data
+          resolve(Buffer.concat(body).toString());
+        } catch (err) {
+          reject(err);
+        }
+      });
     });
-}
+  }
+  
+  async function getData(url) {
+    return new Promise((resolve, reject) => get(url, resolve, reject));
+  }
+
 
 main()
 
@@ -535,7 +545,6 @@ async function main() {
             console.log("------------------")
             console.log("user " + user_id + " products 👇");
             for (let product of product_list) {
-                console.log("|| " + product.substring(0, 50).replace("https://www.flipkart.com/", ""));
                 await checkProduct(product, user);
             }
         }
@@ -550,25 +559,25 @@ async function checkProduct(product, user) {
 
         let lenk = new URL(product);
         lenk = lenk.origin + lenk.pathname; // strip off trackers.
-        let response = await makeHttps(lenk);
+        let response = await getData(lenk);
         var root = HTMLParser.parse(response);
-
+        
         let outOfStock = await checkOutOfStock(root);
         let comingSoon = await checkComingSoon(root);
+        let title = root.querySelector(".B_NuCI").text.trim();
 
         if (outOfStock || comingSoon) {
-
-            if (outOfStock) console.log("^ out of stock");
-            else console.log("^ coming soon");
+            
+            console.log({product_name: title, outOfStock,
+                comingSoon})
 
         } else {
 
             let buyNowandPriceVisible = await checkPriceAndBuyNow(root);
 
             if (user.receive_updates && buyNowandPriceVisible) {
-                let title = root.querySelector(".B_NuCI").text.trim();
+                console.log({ product_name: title, available: true })
                 bot.telegram.sendMessage(user.user_id, title + " IS AVAILABLE, LINK -> " + product);
-
             }
 
         }
@@ -611,7 +620,7 @@ function checkPriceAndBuyNow(root) {
 
             let pricing_visible = (root.querySelector("._30jeq3._16Jk6d") && root.querySelector("._30jeq3._16Jk6d").text) || false;
             let buy_visible = (root.querySelector("._2KpZ6l._2U9uOA.ihZ75k._3AWRsL") && root.querySelector("._2KpZ6l._2U9uOA.ihZ75k._3AWRsL").text) || false;
-            console.log(pricing_visible, buy_visible)
+            
             result = pricing_visible && buy_visible;
 
         } catch (err) {
