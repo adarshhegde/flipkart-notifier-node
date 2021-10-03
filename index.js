@@ -276,8 +276,24 @@ addCommand(new Command({
             msg_args = msg_args.join(" ").split("/add").join("").trim();
 
             if(msg_args.indexOf("https://www.flipkart.com/") == -1) {
-                 ctx.reply("Invalid URL.");
-                return ctx.reply("provide proper URL such as https://www.flipkart.com/poco-x2-matrix-purple-128-gb/p/itm8715ce604cf32");
+              
+                let lenks = [...new Set([...new RegExp(/(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi).exec(msg_args)])]
+
+                let found = false;
+
+                for(let lenk of lenks) {
+                    if(lenk.indexOf("https://dl.flipkart.com/") !== -1) {
+                        found = true;
+                        msg_args = lenk;
+                        break;
+                    }
+                }
+
+                if(!found) {
+                    ctx.reply("Invalid URL.");
+                    return ctx.reply("provide proper URL such as https://www.flipkart.com/poco-x2-matrix-purple-128-gb/p/itm8715ce604cf32");    
+                }
+
             }
 
             const sanitized_url = msg_args.split('?')[0].trim();
