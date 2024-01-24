@@ -10,6 +10,10 @@
 This is a service that was designed to scrape a Flipkart product's page and detect when that product comes in stock and send a high priority notification on Telegram with the help of a Telegram Bot, the bot allows the user to specify the products to check stocks for, by providing the product link.
 </div>
 
+- It is using MongoDB for storing the details of the products and the user associated with it.
+- The delta time of delay observed between restocking and notification is an average 6 seconds, where 5 seconds is the time interval set for the scraping task.
+- It is using PM2 for high availability and recovery from crashes,so the user will not need to worry about missing out on a restock.
+- By using Puppeteer, the bot can perform web scraping in a stable and fast way.
 
 ### Built With
 
